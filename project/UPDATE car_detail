@@ -1,0 +1,19 @@
+UPDATE car_detail
+SET status= 'Unavailable'
+WHERE car_id=(SELECT car_id FROM booking_details WHERE booking_id=new.booking_id)
+
+
+UPDATE car_type
+SET in_stock=(in_stock)+1
+WHERE car_type_id=(SELECT car_type_id FROM car_detail, booking_details WHERE car_detail.car_id=booking_details.car_id AND booking_id=new.booking_id)
+
+UPDATE car_detail
+SET status= 'Available'
+WHERE car_id=(SELECT car_id FROM billing_details WHERE bill_id=new.bill_id)
+
+INSERT INTO billing_details
+SET booking_id=old.booking_id,
+bill_date=new.return_date,
+amount=(datediff(new.return_date, old.from_date))*(SELECT rental_price FROM car_detail WHERE car_id=old.car_id),
+tax_amount=(amount * 0.1),
+total_amount=amount+tax_amount
